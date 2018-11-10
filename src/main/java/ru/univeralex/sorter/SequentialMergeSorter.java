@@ -8,7 +8,7 @@ import java.util.*;
  * Одноэлементные списки сливаем в отсортированные пары.
  * Эти пары сливаем снова по парам и так до тех пор, пока не останется один общий отсортированный список.
  */
-public class MergeSorter {
+public class SequentialMergeSorter {
     public static List<Integer> sort(List<Integer> list){
         List<List<Integer>> listOfSingleElementLists = splitUp(list);
         return merge(listOfSingleElementLists).get(0);

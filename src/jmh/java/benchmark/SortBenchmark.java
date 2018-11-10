@@ -1,7 +1,7 @@
 package benchmark;
 
 import org.openjdk.jmh.annotations.*;
-import ru.univeralex.sorter.MergeSorter;
+import ru.univeralex.sorter.SequentialMergeSorter;
 
 import java.util.List;
 import java.util.Random;
@@ -19,11 +19,11 @@ public class SortBenchmark {
 
     @Setup
     public void setUp(){
-        list = new Random().ints(10_000).boxed().collect(Collectors.toList());
+        list = new Random().ints(1000_000).boxed().collect(Collectors.toList());
     }
 
     @Benchmark
     public List<Integer> sequentialSort() {
-        return MergeSorter.sort(list);
+        return SequentialMergeSorter.sort(list);
     }
 }
