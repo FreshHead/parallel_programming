@@ -2,9 +2,9 @@ package ru.univeralex.sorter;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.RecursiveAction;
-import java.util.concurrent.RecursiveTask;
+import java.util.concurrent.*;
+
+import static java.util.concurrent.ForkJoinPool.defaultForkJoinWorkerThreadFactory;
 
 /**
  * Пока
@@ -13,21 +13,29 @@ public class ForkJoinMergeSorter extends RecursiveTask {
 
     private List<Integer> list;
 
-    ForkJoinMergeSorter(List<Integer> list) {
+    public ForkJoinMergeSorter(List<Integer> list) {
         this.list = list;
+    }
+
+    public List<Integer> sort() {
+        ForkJoinPool pool = new ForkJoinPool();
+//        ForkJoinPool pool = new ForkJoinPool(4, defaultForkJoinWorkerThreadFactory, null, true);
+        return (List<Integer>) pool.invoke(this);
     }
 
     @Override
     protected List<Integer> compute() {
-        if (list.size() == 1) {
-            return list;
+//        System.out.println(Thread.currentThread().getName());
+        if (list.size() <= 1000) {
+            return SequentialMergeSorter.sort(list);
         }
-        List<? extends Integer> sub = list.subList(list.size() / 2, list.size());
+        List<? extends Integer> sub = list.subList(0, list.size() / 2);
         List<Integer> two = new ArrayList<>(sub);
         sub.clear();
-            List<Integer> first = (List<Integer>) new ForkJoinMergeSorter(list).invoke();
-            List<Integer> second = (List<Integer>) new ForkJoinMergeSorter(two).invoke();
-            return merge(first, second);
+        ForkJoinTask<List<Integer>> t1 = new ForkJoinMergeSorter(list);
+        ForkJoinTask<List<Integer>> t2 = new ForkJoinMergeSorter(two);
+        invokeAll(t1, t2);
+        return merge(t1.join(), t2.join()); // Выгоднее джойнить в обратном порядке от fork.
     }
 
     private static List<Integer> merge(List<Integer> firstList, List<Integer> secondList) {
